@@ -1,45 +1,45 @@
 const mineflayer = require('mineflayer')
 
 // === CONFIG ===
-const bot = mineflayer.createBot({
-  host: 'NoModsFree.aternos.me', // your server IP
-  port: 51271,                   // your port
-  username: 'NoModsFree',        // bot username
-  version: '1.21.1'              // force server version (you can try 1.21.1 if it errors)
-})
+function createBot() {
+  const bot = mineflayer.createBot({
+    host: 'NoModsFree.aternos.me', // your server IP
+    port: 51271,                   // your port
+    username: 'NoModsFree',        // bot username
+    version: '1.21.1'              // set your exact version
+  })
 
-// === EVENTS ===
+  // === EVENTS ===
 
-// When the bot logs in
-bot.on('login', () => {
-  console.log(`✅ Logged in as ${bot.username}`)
-  bot.chat('✅ Bot is online and ready!')
-})
+  bot.on('login', () => {
+    console.log(`✅ Logged in as ${bot.username}`)
+    bot.chat('✅ Bot is online and ready!')
+  })
 
-// Log errors
-bot.on('error', err => console.log('❌ Error:', err))
-bot.on('end', () => {
-  console.log('⚠️ Disconnected. Reconnecting in 10s...')
-  setTimeout(() => process.exit(1), 10000)
-})
+  bot.on('error', (err) => {
+    console.log('❌ Error:', err)
+  })
 
-// When someone sends a private message to the bot
-bot.on('whisper', (username, message) => {
-  console.log(`📩 Private message from ${username}: ${message}`)
+  bot.on('end', () => {
+    console.log('⚠️ Disconnected! Reconnecting in 30 seconds...')
+    setTimeout(createBot, 30000) // reconnect after 30s
+  })
 
-  // Check if message starts with !say
-  if (message.startsWith('!say ')) {
-    const toSay = message.substring(5)
-    bot.chat(toSay)
-    bot.whisper(username, `✅ Sent to public: ${toSay}`)
-  } else {
-    bot.whisper(username, '💬 Use !say <message> to send a public chat message.')
-  }
-})
+  bot.on('whisper', (username, message) => {
+    console.log(`📩 ${username} whispered: ${message}`)
+    if (message.startsWith('!say ')) {
+      const toSay = message.slice(5)
+      bot.chat(toSay)
+      bot.whisper(username, `✅ Sent to public: ${toSay}`)
+    } else {
+      bot.whisper(username, '💬 Use !say <message> to send to chat.')
+    }
+  })
 
-// Keep the bot alive
-bot.once('spawn', () => {
-  setInterval(() => {
-    bot.chat('🟢 Still alive!')
-  }, 600000) // every 10 minutes
-})
+  bot.once('spawn', () => {
+    console.log('🟢 Bot spawned successfully!')
+    setInterval(() => bot.chat('🟢 Still alive!'), 600000) // 10min keep-alive
+  })
+}
+
+createBot()
